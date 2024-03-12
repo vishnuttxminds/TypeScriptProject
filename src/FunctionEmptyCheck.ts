@@ -3,7 +3,7 @@ let objPerson = {
   age: 23,
   degree: "CS",
 };
-
+let s ='sdf'
 let objEmpty = {};
 
 const checkFunctionData = (obj: Object) => {
