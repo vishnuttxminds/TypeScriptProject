@@ -69,7 +69,6 @@ const footballPlayer = (player: Football) => {
   if (player.name === undefined) {
     player.name = "Ronaldo";
   }
-
   return `This is ${player.name} from ${player.team}`;
 };
 
