@@ -88,3 +88,4 @@ function iterateObject(obj: any, indent = 0) {
 }
 
 iterateObject(sample2)
+
