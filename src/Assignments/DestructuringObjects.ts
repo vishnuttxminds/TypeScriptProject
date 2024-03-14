@@ -25,7 +25,6 @@ const [firstName, lastName, website] = [
     "codesweetly.com"
   ];
 
-  firstName
 
 // let firstName, lastName, website;
 // [firstName, lastName, website] = ["Oluwatobi", "Sofela", "codesweetly.com"];
