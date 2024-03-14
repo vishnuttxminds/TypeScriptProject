@@ -3,10 +3,19 @@
 
 var numList = [{ num: 5 }, { num: 2 }, { num: 3 }, { num: 10 }];
 
-const totalSum = numList.reduce(function (accumulator, numList) {
-  return accumulator + numList.num;
-}, 0);
+// const totalSum = numList.reduce(function (accumulator, numList) {
+//   return accumulator + numList.num;
+// }, 0);
+
+const sumOfNumbers = (...value: number[]) => {
+  return value.reduce((accumulator, num) => {
+    return accumulator + num;
+  }, 0);
+};
+
 
 console.log("=============Total Sum==============");
-console.log(totalSum);
+console.log(sumOfNumbers(1, 2, 3, 4, 5));
+console.log(sumOfNumbers(1, 2));
+console.log(sumOfNumbers(1, 2, 3, 4));
 console.log("====================================");
