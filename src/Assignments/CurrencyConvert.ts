@@ -21,14 +21,18 @@ const currencyInfo = [
   },
 ];
 
-const convertCurrency = (
-  amount: number,
-  counrty: string,
-  currency: number
-) => {
-  return `Indian rupee amount ${amount} in ${counrty} is ${amount * currency}`;
+const convertCurrency = (amount: number, counrty: string, currency: number) => {
+  let currencyTotal = currency * amount;
+  const resposeObj = { amount, counrty, currencyTotal };
+  return resposeObj;
 };
 
 currencyInfo.forEach((element) => {
-  console.log(convertCurrency(106, element.counrty, element.currency));
+  const { currencyTotal } = convertCurrency(
+    106,
+    element.counrty,
+    element.currency
+  );
+
+  console.log(`amount is ${currencyTotal}`);
 });
