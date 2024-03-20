@@ -1,8 +1,10 @@
 {
   "dependencies": {
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "prompt-sync": "^4.2.0"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.0"
+    "@types/lodash": "^4.17.0",
+    "@types/prompt-sync": "^4.2.3"
   }
 }
