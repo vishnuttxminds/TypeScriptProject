@@ -2,15 +2,10 @@ import promptSync from "prompt-sync";
 
 const prompt = promptSync();
 
-async function getRandomNumber(max: number) {
-  return Math.floor(Math.random() * max);
-}
-
 async function pointCaluculations(userInput: number) {
-  const randomNumber = await getRandomNumber(6);
-
   const calculationPromise = new Promise(async (resolve, reject) => {
     if (userInput > 0) {
+      const randomNumber = Math.floor(Math.random() * 6);
       if (userInput === randomNumber) {
         resolve(2);
       } else if (
@@ -50,7 +45,7 @@ async function enterValue() {
   });
   return enterPromise;
 }
-function countinue(yesOrNo: string) {
+function continueGame(yesOrNo: string) {
   if (yesOrNo === "") {
     yesOrNo = prompt("Do you need to continue? : (Y/N)");
   }
@@ -59,7 +54,7 @@ function countinue(yesOrNo: string) {
     enterValue()
       .then((value) => {
         console.log(value);
-        countinue("");
+        continueGame("");
       })
       .catch((error) => {
         console.log(error);
@@ -69,7 +64,7 @@ function countinue(yesOrNo: string) {
   }
 }
 
-countinue("Y");
+continueGame("Y");
 
 // enterValue()
 //       .then((value) => {
