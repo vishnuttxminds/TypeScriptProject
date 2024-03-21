@@ -1,4 +1,3 @@
-
 import promptSync from "prompt-sync";
 const prompt = promptSync();
 
@@ -18,12 +17,7 @@ const largestId = objectArray.reduce((prev, current) => {
   return prev.id > current.id ? prev : current;
 }).id;
 
-const promise = new Promise((resolve, reject) => {
-  setTimeout(() => {
-    resolve("Promise done 10000 : ");
-  }, 10000);
-});
-
+// 1) LIST ARRAY
 const listArray = async () => {
   objectArray.forEach((element) => {
     console.log(element);
@@ -35,6 +29,7 @@ const checkTheIdAvailability = async (index: number) => {
   return (index = objectArray.findIndex((item) => item.id === index));
 };
 
+// 4) ITEM DELETE form ARRAY
 const deleteFromArray = async () => {
   let currentSize = objectArray.length;
 
@@ -54,10 +49,10 @@ const deleteFromArray = async () => {
       reject("Delete item is not success");
     }
   });
-
   return promise;
 };
 
+// 3) ITEM UPDATE form ARRAY
 const updateIteamOfArray = async () => {
   let id = prompt("Enter a 'id' to update the title:");
 
@@ -72,13 +67,12 @@ const updateIteamOfArray = async () => {
       reject("There is no id found in the list :");
     }
   });
-
   return promise;
 };
 
+// method to ask for continue
 const doYouCountinue = async () => {
   let yesOrNo = prompt("Do you need to continue? : (Y/N)");
-
   const promise = new Promise<void>((resolve, reject) => {
     if (yesOrNo === ("Y" || "y")) {
       resolve();
@@ -90,6 +84,7 @@ const doYouCountinue = async () => {
   return promise;
 };
 
+// 2) ITEM INSERTION on ARRAY
 const arrayInsertion = async () => {
   const userInput = prompt("ARRAY INSERT: Enter a vehicle name: ");
   inserIntoArray({ id: largestId + 1, title: userInput })
@@ -114,47 +109,56 @@ function inserIntoArray(item: { id: number; title: string }) {
   return promise;
 }
 
+//function to call continue method
 const functionContinue = () => {
   doYouCountinue()
     .then((val) => {
       console.log(val);
-      createTask();
+      startTodoAssignment();
     })
     .catch((error) => {
       console.log(error);
     });
 };
 
-const createTask = () => {
+// startig method for the program
+const startTodoAssignment = () => {
   const userInput = prompt(
     "Please select, 1)LIST ARRAY 2)INSERT ARRAY, 3)UPDATE ARRAY, 4)DELETE ARRAY : "
   );
-  if (userInput === "1") {
-    listArray();
-  } else if (userInput === "2") {
-    arrayInsertion();
-  } else if (userInput === "3") {
-    updateIteamOfArray()
-      .then(() => {
-        listArray();
-      })
-      .catch((error) => {
-        console.log(error);
-        functionContinue();
-      });
-  } else if (userInput === "4") {
-    deleteFromArray()
-      .then(() => {
-        listArray();
-      })
-      .catch((error) => {
-        console.log(error);
-        functionContinue();
-      });
-  } else {
-    console.log("Invalied input: Select 1 or 2 or 3 ");
-    functionContinue();
+  switch (userInput) {
+    case "1":
+      listArray();
+      break;
+    case "2":
+      arrayInsertion();
+      break;
+    case "3":
+      updateIteamOfArray()
+        .then(() => {
+          listArray();
+        })
+        .catch((error) => {
+          console.log(error);
+          functionContinue();
+        });
+      break;
+    case "4":
+      deleteFromArray()
+        .then(() => {
+          listArray();
+        })
+        .catch((error) => {
+          console.log(error);
+          functionContinue();
+        });
+      break;
+    default:
+      console.log("Invalied input: Select 1 or 2 or 3 ");
+      functionContinue();
+      break;
   }
 };
 
-createTask();
+// start form here
+startTodoAssignment();
