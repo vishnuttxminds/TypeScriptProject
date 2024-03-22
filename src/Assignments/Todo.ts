@@ -154,7 +154,7 @@ const startTodoAssignment = () => {
         });
       break;
     default:
-      console.log("Invalied input: Select 1 or 2 or 3 ");
+      console.log("Invalied input: Select 1 or 2 or 3 or 4 ");
       functionContinue();
       break;
   }

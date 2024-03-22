@@ -1,0 +1,8 @@
+{
+  "namePerson": "John Doe",
+  "persionAge": 30,
+  "address": {
+    "city": "New York",
+    "country": "USA"
+  }
+}
