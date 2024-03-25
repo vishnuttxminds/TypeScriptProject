@@ -1,0 +1,470 @@
+import React, {useState, useRef, useEffect} from 'react';
+import {
+  View,
+  StatusBar,
+  TouchableOpacity,
+  Text,
+  BackHandler,
+  FlatList,
+  Image,
+  Dimensions,
+} from 'react-native';
+import styles from '../assets/styles/VideoTutorialScreenStyle';
+import Toolbar from './Toolbar';
+import string from '../components/Strings';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import Video from 'react-native-video';
+import ProgressBar from '../components/ProgressBar';
+import Orientation from 'react-native-orientation-locker';
+import PlayerControlsFull from '../components/PlayerControlsFull';
+import {NavigationProp} from '../routes/NavigationTypes';
+import {useNavigation} from '@react-navigation/native';
+import {getGalleryData} from '../services/Services';
+import Loader from '../components/Loader';
+import {AppColors} from '../assets/colors/Colors';
+import {AppFonts} from '../assets/fonts/AppFonts';
+
+type VideoRefs = {[key: string]: Video | null};
+
+interface Item {
+  id: string;
+  image_type: string;
+  posture_url: string;
+  thumbnail_url: string;
+  tittle: string;
+}
+
+interface ItemResponseData {
+  response: Response;
+  status: string;
+}
+interface Response {
+  current_page: number;
+  result: [];
+  total_items: number;
+  total_pages: number;
+}
+
+const SliderSwitchScreen: React.FC<{navigation: any; route: any}> = ({
+  route,
+}) => {
+  const navigation = useNavigation<NavigationProp>();
+  const videoRefs = useRef<VideoRefs>({});
+  const flatListRef = useRef<FlatList>(null);
+  const [currentTime, setCurrentTime] = useState<{[key: string]: number}>({});
+  const [duration, setDuration] = useState<{[key: string]: number}>({});
+  const [play, setPlay] = useState(false);
+  const [visibleItemType, setVisibleItemType] = useState<string | null>(null);
+  const [data, setData] = useState<Item[]>([]);
+  const [page, setPage] = useState(route?.params?.page);
+  const [size, setSize] = useState(10);
+  const [totalPage, setTotalPage] = useState(route?.params?.totalPages);
+  const [loading, setLoading] = useState(false);
+  const [itemTittle, setItemTittle] = useState('');
+  const [firstPlay, setFirstPlay] = useState(false);
+
+  useEffect(() => {
+    setData(route?.params?.data);
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    if (page >= totalPage) {
+      setLoading(false);
+      return;
+    }
+    const nextPage = page + 1;
+    setPage(nextPage);
+    const newData: ItemResponseData = await getGalleryData(nextPage, size);
+    const itemdata: Item[] = newData?.response?.result;
+    setLoading(false);
+    if (itemdata?.length > 0) {
+      setTotalPage(newData?.response?.total_pages);
+      setData([...data, ...itemdata]);
+    }
+  };
+
+  // Initialize all videos as muted initially
+  const initialIsMuteMap: {[key: string]: boolean} = {};
+  data.forEach(item => {
+    initialIsMuteMap[item.id] = true;
+  });
+
+  const [isMuteMap, setIsMuteMap] = useState(initialIsMuteMap);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [showControl, setShowControl] = useState(true);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+  const [activeVideoItem, setActiveVideoItem] = useState<{
+    id: string;
+    posture_url: string;
+  } | null>(null);
+
+  const initialLoad = useRef(false);
+
+  useEffect(() => {
+    Orientation.addOrientationListener(handleOrientation);
+    return () => {
+      Orientation.removeOrientationListener(handleOrientation);
+    };
+  }, []);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
+    return () => {
+      backHandler.remove();
+    };
+  }, []);
+
+  const handleBackPress = () => {
+    if (fullscreen) {
+      handleFullscreen(null);
+    } else {
+      navigation.goBack();
+    }
+    return true;
+  };
+
+  const handleOrientation = (orientation: string) => {
+    if (orientation === 'LANDSCAPE-LEFT' || orientation === 'LANDSCAPE-RIGHT') {
+      setFullscreen(true);
+      StatusBar.setHidden(true);
+    } else {
+      setFullscreen(false);
+      StatusBar.setHidden(false);
+    }
+  };
+
+  const handleFullscreen = (
+    videoItem: {id: string; posture_url: string} | null,
+  ) => {
+    if (fullscreen && videoItem) {
+      Orientation.lockToPortrait();
+      StatusBar.setHidden(false);
+    } else {
+      Orientation.lockToLandscapeLeft();
+      StatusBar.setHidden(true);
+    }
+
+    setFullscreen(!fullscreen);
+    setActiveVideoId(videoItem?.id || null);
+    setActiveVideoItem(videoItem);
+
+    if (videoItem && videoRefs.current[videoItem.id]) {
+      const index = data.findIndex(item => item.id === videoItem.id);
+      flatListRef.current?.scrollToIndex({index, animated: true});
+    }
+  };
+
+  const handleControls = () => {
+    if (showControl) {
+      setShowControl(false);
+    } else {
+      setShowControl(true);
+    }
+    setTimeout(() => {
+      if (play) {
+        setShowControl(false);
+      }
+    }, 2000);
+  };
+
+  const resetControls = () => {
+    setShowControl(true);
+  };
+
+  const onProgress = (data: {currentTime: any}, videoId: string) => {
+    if (activeVideoId === videoId) {
+      setCurrentTime(prev => ({
+        ...prev,
+        [videoId]: data.currentTime,
+      }));
+    }
+  };
+
+  const onLoadEnd = (
+    data: {duration: any; currentTime: any},
+    videoId: string,
+  ) => {
+    setDuration(prev => ({
+      ...prev,
+      [videoId]: data.duration,
+    }));
+
+    if (!initialLoad.current) {
+      initialLoad.current = true;
+      setCurrentTime(prev => ({
+        ...prev,
+        [videoId]: data.currentTime,
+      }));
+    }
+
+    if (activeVideoId === videoId) {
+      setDuration(prev => ({
+        ...prev,
+        [videoId]: data.duration,
+      }));
+
+      if (initialLoad.current) {
+        setCurrentTime(prev => ({
+          ...prev,
+          [videoId]: data.currentTime,
+        }));
+      }
+    }
+  };
+
+  const onEnd = () => {
+    setPlay(false);
+    setShowControl(true);
+    videoRefs.current[activeVideoId!]?.seek(0);
+  };
+
+  const handlePlay = () => {
+    setFirstPlay(true);
+    if (fullscreen) {
+      setTimeout(() => setShowControl(false), 500);
+    }
+    setPlay(true);
+    setTimeout(() => {
+      handleControls();
+    }, 2000);
+  };
+
+  const handlePlayPause = () => {
+    if (play) {
+      setPlay(false);
+      setShowControl(true);
+      return;
+    }
+    if (fullscreen) {
+      setTimeout(() => setShowControl(false), 2000);
+    }
+    setPlay(true);
+  };
+
+  const handleMute = () => {
+    // Toggle the mute state for the currently active video
+    setIsMuteMap(prev => ({
+      ...prev,
+      [activeVideoId!]: !prev[activeVideoId!],
+    }));
+  };
+
+  const onSeek = (data: {seekTime: any}) => {
+    videoRefs.current[activeVideoId!]?.seek(data.seekTime);
+    setCurrentTime(prev => ({
+      ...prev,
+      [activeVideoId!]: data.seekTime,
+    }));
+  };
+
+  const onViewRef = useRef(({viewableItems}: {viewableItems: any}) => {
+    if (viewableItems.length > 0) {
+      setActiveVideoId(viewableItems[0]?.item?.id || null);
+      setActiveVideoItem(viewableItems[0]?.item || null);
+      setVisibleItemType(viewableItems[0]?.item?.image_type);
+      setItemTittle(viewableItems[0]?.item?.tittle);
+    }
+  });
+
+  const handleContentSizeChange = () => {
+    const position = route?.params?.position;
+    flatListRef.current?.scrollToIndex({animated: true, index: position});
+  };
+
+  const renderItem = ({
+    item,
+  }: {
+    item: {
+      id: string;
+      image_type: string;
+      posture_url: string;
+      thumbnail_url: string;
+      tittle: string;
+    };
+  }) => (
+    <View style={[styles.videoContainerSlider]}>
+      {item.image_type === 'Video' ? (
+        <TouchableOpacity onPress={() => handleControls()}>
+          {item.thumbnail_url !== '' && !play && !firstPlay ? (
+            <Image source={{uri: item.thumbnail_url}} style={styles.video} />
+          ) : (
+            <Video
+              ref={ref => (videoRefs.current[item.id] = ref)}
+              source={{uri: item.posture_url}}
+              style={styles.video}
+              controls={false}
+              resizeMode={'contain'}
+              onLoad={data => onLoadEnd(data, item.id)}
+              onProgress={data => onProgress(data, item.id)}
+              onEnd={onEnd}
+              paused={activeVideoId !== item.id || !play}
+              muted={isMuteMap[item.id]}
+            />
+          )}
+        </TouchableOpacity>
+      ) : (
+        <Image
+          source={{uri: item.posture_url}}
+          style={{
+            height: '90%',
+            borderRadius: 50,
+            width: Dimensions.get('window').width,
+          }}
+        />
+      )}
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <StatusBar
+        backgroundColor="transparent"
+        barStyle="light-content"
+        translucent={true}
+      />
+      <SafeAreaView style={{flex: 1}}>
+        <Toolbar
+          title={string.gallery}
+          navigation={undefined}
+          isPillsNeeded={true}
+        />
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignContent: 'center',
+          }}>
+          <Loader loading={loading} />
+
+          <View
+            style={{
+              flex: 1,
+            }}>
+            <FlatList
+              ref={flatListRef}
+              contentContainerStyle={{}}
+              data={data}
+              renderItem={renderItem}
+              keyExtractor={item => item.id}
+              horizontal
+              pagingEnabled
+              onScroll={resetControls}
+              showsHorizontalScrollIndicator={false}
+              onEndReached={fetchData}
+              onContentSizeChange={handleContentSizeChange}
+              viewabilityConfig={{itemVisiblePercentThreshold: 50}}
+              onViewableItemsChanged={onViewRef.current}
+              onEndReachedThreshold={0.01}
+              initialNumToRender={100}
+              maxToRenderPerBatch={100}
+              onScrollToIndexFailed={info => {
+                console.log('onScrollToIndexFailed > ', info);
+              }}
+            />
+          </View>
+
+          {visibleItemType === 'Video' && showControl && (
+            <View
+              style={{
+                width: '100%',
+                height: '100%',
+                alignContent: 'center',
+                position: 'absolute',
+                justifyContent: 'center',
+              }}>
+              {fullscreen ? null : (
+                <View
+                  style={{
+                    height: '100%',
+                    position: 'absolute',
+                    alignContent: 'center',
+                    width: '100%',
+                  }}>
+                  <View style={styles.controlOverlay}>
+                    <View
+                      style={{
+                        flex: 1,
+                        justifyContent: 'center',
+                        marginTop: 70,
+                      }}>
+                      <PlayerControlsFull
+                        onPlay={handlePlay}
+                        onPause={handlePlayPause}
+                        playing={activeVideoId === activeVideoItem?.id && play}
+                        onMute={handleMute}
+                        isMute={
+                          activeVideoId === activeVideoItem?.id &&
+                          isMuteMap[activeVideoId]
+                        }
+                        onFullscreen={() => handleFullscreen(activeVideoItem!)}
+                        isFullscreen={
+                          activeVideoId === activeVideoItem?.id && fullscreen
+                        }
+                        isVisibleControls={false}
+                      />
+                    </View>
+                    <View style={{marginBottom: 90}}>
+                      <ProgressBar
+                        currentTime={currentTime[activeVideoId!] || 0}
+                        duration={duration[activeVideoId!] || 0}
+                        onSlideStart={handlePlayPause}
+                        onSlideComplete={handlePlayPause}
+                        onSlideCapture={onSeek}
+                      />
+                    </View>
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
+
+          <Text
+            style={{
+              color: AppColors.white,
+              fontFamily: AppFonts.inter,
+              fontSize: 15,
+              justifyContent: 'center',
+              alignContent: 'flex-end',
+              alignItems: 'flex-end',
+              textAlign: 'center',
+              marginBottom: 50,
+            }}>
+            {itemTittle}
+          </Text>
+        </View>
+      </SafeAreaView>
+    </View>
+  );
+};
+
+export default SliderSwitchScreen;
+
+
+
+
+// Gallery List API
+export const getGalleryData = async (page: number, size: number) => {
+  try {
+    const token = await AsyncStorage.getItem(authToken);
+    const response = await axios.get(
+      `${URL}select_gallery?` + 'page=' + page + '&size=' + size,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySUQiOiIrOTE4ODQ4NTIyNDcwIiwiZXhwaXJ5IjoxNzAzMjQyNDYxLjQ2MDIxOH0.Y-Kj7XeefwubthwACKcmAjQ1Ec_SmrCrRWZCETJMnU0',
+          Platform: Platform.OS,
+        },
+      },
+    );
+    
+    console.log("Gallery >   " ,  response.data);
+
+    return response.data;
+  } catch (error: any) {
+    return error.message;
+  }
+};
