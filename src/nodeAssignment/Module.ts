@@ -10,4 +10,3 @@ export const warnning = (message: any) => {
 export const error = (message: any) => {
   console.error(`[ERROR] ${message}`);
 };
-
