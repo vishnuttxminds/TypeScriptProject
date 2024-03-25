@@ -27,9 +27,8 @@ const copyFile = (source: string, destination: string) => {
 
 // Example usage:
 const sourceFile =
-  "\\nodeSample\\TypeScriptProject\\src\\deleteFiles\\First.ts";
+  "\\nodeSample\\TypeScriptProject\\src\\nodeAssignment\\deleteFiles\\First.ts";
 const destinationFile =
-  "\\nodeSample\\TypeScriptProject\\src\\deleteFiles\\Second.ts";
+  "\\nodeSample\\TypeScriptProject\\src\\nodeAssignment\\deleteFiles\\Second.ts";
 
 copyFile(sourceFile, destinationFile);
-    
