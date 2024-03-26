@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import path from "path";
 
 const copyFile = (source: string, destination: string) => {
   // Create a readable stream from the source file
@@ -26,9 +27,7 @@ const copyFile = (source: string, destination: string) => {
 };
 
 // Example usage:
-const sourceFile =
-  "\\nodeSample\\TypeScriptProject\\src\\nodeAssignment\\deleteFiles\\First.ts";
-const destinationFile =
-  "\\nodeSample\\TypeScriptProject\\src\\nodeAssignment\\deleteFiles\\Second.ts";
+const sourceFile = path.join(__dirname, "deleteFiles", "First.ts");
+const destinationFile = path.join(__dirname, "deleteFiles", "Second.ts");
 
 copyFile(sourceFile, destinationFile);

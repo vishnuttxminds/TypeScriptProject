@@ -42,7 +42,5 @@ function deleteFilesInDirectory(directoryPath: string): void {
     });
   });
 }
-const directoryPath =
-  "\\nodeSample\\TypeScriptProject\\src\\nodeAssignment\\deleteFiles";
-
+const directoryPath = path.join(__dirname, "deleteFiles");
 deleteFilesInDirectory(directoryPath);

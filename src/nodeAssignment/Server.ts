@@ -7,7 +7,12 @@ http
     res.write(
       "<!DOCTYPE html><html><head><title>Logging Example</title></head><body>"
     );
+    const superHaro = {
+      first : "Thoma",
+      last :"T T"
+    }
     res.write("<h1>Hello Thoma!</h1>");
+    res.write(JSON.stringify(superHaro));
     res.write("<script>console.log('SERVER IS RUNNING');</script>");
     res.write("</body></html>");
     res.end();
