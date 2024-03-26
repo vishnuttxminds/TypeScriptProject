@@ -26,7 +26,7 @@ const copyFile = (source: string, destination: string) => {
   });
 };
 
-// Example usage:
+
 const sourceFile = path.join(__dirname, "deleteFiles", "First.ts");
 const destinationFile = path.join(__dirname, "deleteFiles", "Second.ts");
 
